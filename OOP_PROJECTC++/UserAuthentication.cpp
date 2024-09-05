@@ -1,12 +1,12 @@
 #include <iostream>
-#include <bits/stdc++.h>
-#include <unistd.h>
-#include <cstdlib>
+#include <fstream>
 #include <sstream>
+#include <unistd.h>
+#include <map>
 
 using namespace std;
-class User
-{
+
+class User {
 private:
     string userName;
     string userId;
@@ -14,49 +14,63 @@ private:
 public:
     User() : userName(""), userId("") {}
 
-    //   Seter's
-
-    // This below function is to set the user name to the user name variable .
-    // This uses this constructor to set the value .
-
-    void setUserName(string userName)
-    {
+    // Setters
+    void setUserName(string userName) {
         this->userName = userName;
     }
 
-    // This below function is to set the user id to the user id variable .
-    // This uses this constructor to set the value .
-
-    void setUserId(string userId)
-    {
+    void setUserId(string userId) {
         this->userId = userId;
     }
 
-    //   Geter's
-
-    // This below function is to get the user name variable .
-    // This uses this constructor to get the value .
-
-    string getUserName()
-    {
+    // Getters
+    string getUserName() {
         return this->userName;
     }
 
-    // This below function is to get the user id variable .
-    // This uses this constructor to get the value .
-
-    string getUserId()
-    {
+    string getUserId() {
         return this->userId;
     }
 };
-class Authenticate : public User
-{
+
+class Authenticate : public User {
+private:
+    map<string, string> userMap;
+
+    void loadData() {
+        ifstream infile("./Data.txt");
+        if (!infile) {
+            cout << "\tError: File can't open!" << endl;
+        } else {
+            string line;
+            while (getline(infile, line)) {
+                stringstream ss(line);
+                string userId, userName;
+                ss >> userId >> userName;
+                userMap[userId] = userName;
+            }
+            infile.close();
+        }
+    }
+
+    void saveData() {
+        ofstream outFile("./Data.txt");
+        if (!outFile) {
+            cout << "\tError: File can't open!" << endl;
+        } else {
+            for (const auto& pair : userMap) {
+                outFile << pair.first << " " << pair.second << endl;
+            }
+            outFile.close();
+        }
+    }
+
 public:
-    void storingData()
-    {
+    void storingData() {
+        loadData();
+
         string userName, userId;
-        cout << "\tEnter UserName : ";
+        cout << "\tEnter UserName: ";
         cin >> userName;
         setUserName(userName);
 
@@ -64,82 +78,51 @@ public:
         cout << "\tEnter a UserId: ";
         cin >> userId;
 
-        if (userId.length() == 8)
-        {
+        if (userId.length() == 8) {
             setUserId(userId);
-        }
-        else
-        {
-            cout << "\tThere should be 8 Charaters" << endl;
+        } else {
+            cout << "\tThere should be 8 characters" << endl;
             goto start;
         }
-        // ofstream is used to write the data
-        ofstream outLine("./Data.txt", ios::app);
-        if (!outLine)
-        {
-            cout << "\tError: File Can't open!" << endl;
+
+        userMap[userId] = userName;
+        saveData();
+
+        cout << "\tPlease Wait, User Registering";
+        for (int i = 0; i < 3; i++) {
+            cout << ".";
+            sleep(2);
         }
-        else
-        {
-            outLine << "\t" << getUserName() << " : " << getUserId() << endl
-                    << endl;
-            cout << "\tPlease Wait User Registering";
-            for (int i = 0; i < 3; i++)
-            {
-                cout << ".";
-                sleep(2);
-            }
-            cout << endl;
-            cout << "\tUser Registered Successfully" << endl;
-        }
-        outLine.close();
+        cout << endl;
+        cout << "\tUser Registered Successfully" << endl;
         sleep(3);
     }
-    void authenticateUser()
-    {
-        sleep(4);
-        string userID, userNAme;
-        cout << "\t Enter User Name : ";
-        cin >> userID;
-        cout << "\t Enter UserId: ";
-        cin >> userNAme;
-        ifstream infile("./Data.txt");
-        if (!infile)
-        {
-            cout << "\tError File cannot open: " << endl;
-        }
-        else
-        {
-            string line;
-            bool found = false;
-            while (getline(infile, line))
-            {
-                stringstream ss;
-                ss << line;
-                string userId, userName;
-                char delimiter;
-                ss >> userId >> delimiter >> userName;
-                if (userID == userId && userNAme == userName)
-                {
-                    found = true;
-                    cout << "\tPlease Wait";
-                    for (int i = 0; i < 3; i++)
-                    {
-                        cout << ".";
-                        sleep(4);
-                    }
-                    cout << endl;
-                    cout << "\tWelcome to this page" << endl;
-                }
+
+    void authenticateUser() {
+        loadData();
+
+        string userId, userName;
+        cout << "\tEnter UserId: ";
+        cin >> userId;
+        cout << "\tEnter UserName: ";
+        cin >> userName;
+
+        if (userMap.find(userId) != userMap.end() && userMap[userId] == userName) {
+            cout << "\tPlease Wait";
+            for (int i = 0; i < 3; i++) {
+                cout << ".";
+                sleep(4);
             }
-            if (!found)
-            {
-                cout << "\tError: Incorrect Login ID or Password!" << endl;
-                cout << "\tSelect Option to ReLogin" << endl;
-            }
+            cout << endl;
+            cout << "\tWelcome to this page" << endl;
+        } else {
+            cout << "\tError: Incorrect Login ID or Password!" << endl;
+            cout << "\tSelect Option to ReLogin" << endl;
         }
     }
 };
+
+
 int main()
 {
     Authenticate AuntenticateUser;
