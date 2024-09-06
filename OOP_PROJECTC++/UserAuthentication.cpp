@@ -6,7 +6,8 @@
 
 using namespace std;
 
-class User {
+class User
+{
 private:
     string userName;
     string userId;
@@ -15,59 +16,53 @@ public:
     User() : userName(""), userId("") {}
 
     // Setters
-    void setUserName(string userName) {
+    void setUserName(string userName)
+    {
         this->userName = userName;
     }
 
-    void setUserId(string userId) {
+    void setUserId(string userId)
+    {
         this->userId = userId;
     }
 
     // Getters
-    string getUserName() {
+    string getUserName()
+    {
         return this->userName;
     }
 
-    string getUserId() {
+    string getUserId()
+    {
         return this->userId;
     }
 };
 
-class Authenticate : public User {
+class Authenticate : public User
+{
 private:
     map<string, string> userMap;
 
-    void loadData() {
-        ifstream infile("./Data.txt");
-        if (!infile) {
+    void saveData()
+    {
+        ofstream outFile("./Data.txt",ios::app);
+        if (!outFile)
+        {
             cout << "\tError: File can't open!" << endl;
-        } else {
-            string line;
-            while (getline(infile, line)) {
-                stringstream ss(line);
-                string userId, userName;
-                ss >> userId >> userName;
-                userMap[userId] = userName;
-            }
-            infile.close();
         }
-    }
-
-    void saveData() {
-        ofstream outFile("./Data.txt");
-        if (!outFile) {
-            cout << "\tError: File can't open!" << endl;
-        } else {
-            for (const auto& pair : userMap) {
-                outFile << pair.first << " " << pair.second << endl;
+        else
+        {
+            for (const auto &pair : userMap)
+            {
+                outFile << "UserId: " << pair.first << ", " << "Username: " << pair.second << endl;
             }
             outFile.close();
         }
     }
 
 public:
-    void storingData() {
-        loadData();
+    void storingData()
+    {
 
         string userName, userId;
         cout << "\tEnter UserName: ";
@@ -78,9 +73,12 @@ public:
         cout << "\tEnter a UserId: ";
         cin >> userId;
 
-        if (userId.length() == 8) {
+        if (userId.length() == 8)
+        {
             setUserId(userId);
-        } else {
+        }
+        else
+        {
             cout << "\tThere should be 8 characters" << endl;
             goto start;
         }
@@ -89,7 +87,8 @@ public:
         saveData();
 
         cout << "\tPlease Wait, User Registering";
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 3; i++)
+        {
             cout << ".";
             sleep(2);
         }
@@ -98,8 +97,8 @@ public:
         sleep(3);
     }
 
-    void authenticateUser() {
-        loadData();
+    void authenticateUser()
+    {
 
         string userId, userName;
         cout << "\tEnter UserId: ";
@@ -107,21 +106,24 @@ public:
         cout << "\tEnter UserName: ";
         cin >> userName;
 
-        if (userMap.find(userId) != userMap.end() && userMap[userId] == userName) {
+        if (userMap.find(userId) != userMap.end() && userMap[userId] == userName)
+        {
             cout << "\tPlease Wait";
-            for (int i = 0; i < 3; i++) {
+            for (int i = 0; i < 3; i++)
+            {
                 cout << ".";
                 sleep(4);
             }
             cout << endl;
             cout << "\tWelcome to this page" << endl;
-        } else {
+        }
+        else
+        {
             cout << "\tError: Incorrect Login ID or Password!" << endl;
             cout << "\tSelect Option to ReLogin" << endl;
         }
     }
 };
-
 
 int main()
 {
