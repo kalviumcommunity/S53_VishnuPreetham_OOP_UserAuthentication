@@ -41,7 +41,8 @@ public:
 class Authenticate
 {
 private:
-    vector<User> userArray; 
+    vector<User> userArray;
+    int static userCount;
 
     void saveData()
     {
@@ -52,10 +53,12 @@ private:
         }
         else
         {
+            userCount++;
             for (const auto &user : userArray)
             {
-                outFile << "UserId: " << user.getUserId() << ", Username: " << user.getUserName() << endl;
+                outFile << "UserNo: " << userCount << " UserId: " << user.getUserId() << ", Username: " << user.getUserName() << endl;
             }
+
             outFile.close();
         }
     }
@@ -63,9 +66,9 @@ private:
 public:
     void storingData()
     {
-        User newUser; 
-        string* userName = new string ;
-        string* userId= new string;
+        User newUser;
+        string *userName = new string;
+        string *userId = new string;
 
         cout << "\tEnter UserName: ";
         cin >> *userName;
@@ -85,16 +88,13 @@ public:
             goto start;
         }
 
-  
         userArray.push_back(newUser);
 
- 
         saveData();
         delete userName;
         delete userId;
-        userName=nullptr;
-        userId=nullptr;
-
+        userName = nullptr;
+        userId = nullptr;
 
         cout << "\tPlease Wait, User Registering";
         for (int i = 0; i < 3; i++)
@@ -104,6 +104,8 @@ public:
         }
         cout << endl;
         cout << "\tUser Registered Successfully!" << endl;
+        cout << "\tUserNo: " << userCount << ", UserId: " << newUser.getUserId() << ", Username: " << newUser.getUserName() << endl;
+
         sleep(1);
     }
 
@@ -142,6 +144,8 @@ public:
         }
     }
 };
+
+int Authenticate::userCount = 0;
 
 int main()
 {
