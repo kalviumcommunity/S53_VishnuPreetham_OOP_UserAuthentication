@@ -16,14 +16,14 @@ public:
     User() : userName(""), userId("") {}
 
     // Setters
-    void setUserName(string userName)
+    void setUserName(string *userName)
     {
-        this->userName = userName;
+        this->userName = *userName;
     }
 
-    void setUserId(string userId)
+    void setUserId(string *userId)
     {
-        this->userId = userId;
+        this->userId = *userId;
     }
 
     // Getters
@@ -64,17 +64,18 @@ public:
     void storingData()
     {
         User newUser; 
-        string userName, userId;
+        string* userName = new string ;
+        string* userId= new string;
 
         cout << "\tEnter UserName: ";
-        cin >> userName;
+        cin >> *userName;
         newUser.setUserName(userName);
 
     start:
         cout << "\tEnter a UserId (8 characters): ";
-        cin >> userId;
+        cin >> *userId;
 
-        if (userId.length() == 8)
+        if (userId->length() == 8)
         {
             newUser.setUserId(userId);
         }
@@ -89,6 +90,10 @@ public:
 
  
         saveData();
+        delete userName;
+        delete userId;
+        userName=nullptr;
+        userId=nullptr;
 
 
         cout << "\tPlease Wait, User Registering";
