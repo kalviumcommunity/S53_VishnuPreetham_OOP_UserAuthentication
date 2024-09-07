@@ -42,7 +42,19 @@ class Authenticate
 {
 private:
     vector<User> userArray;
-    int static userCount;
+    static int userCount;
+
+    static bool checkUserExists(string &userId, vector<User> &userArray)
+    {
+        for (const auto &user : userArray)
+        {
+            if (user.getUserId() == userId)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
 
     void saveData()
     {
@@ -58,9 +70,13 @@ private:
             {
                 outFile << "UserNo: " << userCount << " UserId: " << user.getUserId() << ", Username: " << user.getUserName() << endl;
             }
-
             outFile.close();
         }
+    }
+
+     static bool isUserId(string &userId)
+    {
+        return userId.length() >= 8;
     }
 
 public:
@@ -78,9 +94,19 @@ public:
         cout << "\tEnter a UserId (8 characters): ";
         cin >> *userId;
 
-        if (userId->length() == 8)
+        if (Authenticate::isUserId(*userId)) 
         {
-            newUser.setUserId(userId);
+            if (!Authenticate::checkUserExists(*userId, userArray)) 
+            {
+                newUser.setUserId(userId);
+                userArray.push_back(newUser); 
+                saveData();
+            }
+            else
+            {
+                cout << "\tError: UserId already exists!" << endl;
+                goto start;
+            }
         }
         else
         {
@@ -88,9 +114,6 @@ public:
             goto start;
         }
 
-        userArray.push_back(newUser);
-
-        saveData();
         delete userName;
         delete userId;
         userName = nullptr;
@@ -143,6 +166,34 @@ public:
             cout << "\tError: Incorrect UserId or UserName!" << endl;
         }
     }
+
+    static void userInterface(Authenticate AuntenticateUser)
+    {
+        bool exit = false;
+        while (!exit)
+        {
+            cout << "\n / xxxxxxxxxxxxxxx -:- USER AUTHENTICATION -:- xxxxxxxxxxxxxx / " << endl;
+            cout << "\t1. User Register " << endl;
+            cout << "\t2. User Login" << endl;
+            cout << "\t3. Exit" << endl;
+            cout << "\tPlease Select the option to Proceed: ";
+            int val;
+            cin >> val;
+            if (val == 1)
+            {
+                AuntenticateUser.storingData();
+            }
+            else if (val == 2)
+            {
+                AuntenticateUser.authenticateUser();
+            }
+            else if (val == 3)
+            {
+                exit = true;
+                cout << "\tThank you! Please Visit Again." << endl;
+            }
+        }
+    }
 };
 
 int Authenticate::userCount = 0;
@@ -150,29 +201,6 @@ int Authenticate::userCount = 0;
 int main()
 {
     Authenticate AuntenticateUser;
-    bool exit = false;
-    while (!exit)
-    {
-        cout << "\n / xxxxxxxxxxxxxxx -:- USER AUTHENTICATION -:- xxxxxxxxxxxxxx / " << endl;
-        cout << "\t1. User Register " << endl;
-        cout << "\t2. User Login" << endl;
-        cout << "\t3. Exit" << endl;
-        cout << "\tPlease Select the option to Proceed: ";
-        int val;
-        cin >> val;
-        if (val == 1)
-        {
-            AuntenticateUser.storingData();
-        }
-        else if (val == 2)
-        {
-            AuntenticateUser.authenticateUser();
-        }
-        else if (val == 3)
-        {
-            exit = true;
-            cout << "\tThank you! Please Visit Again." << endl;
-        }
-    }
+    AuntenticateUser.userInterface(AuntenticateUser);
     return 0;
 }
