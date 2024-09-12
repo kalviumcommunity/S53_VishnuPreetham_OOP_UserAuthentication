@@ -114,7 +114,10 @@ private:
     }
 
 public:
-    
+    Authenticate()
+    {
+        cout << "\tI am a constructor" << endl;
+    }
 
     void storingData()
     {
@@ -229,6 +232,11 @@ public:
                 cout << "\tThank you! Please Visit Again." << endl;
             }
         }
+    }
+
+    ~Authenticate()
+    {
+        cout << "\tDestructor called. Resources released!" << endl;
     }
 };
 
