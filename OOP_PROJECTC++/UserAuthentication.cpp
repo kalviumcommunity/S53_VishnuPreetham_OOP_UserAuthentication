@@ -44,12 +44,11 @@ private:
     vector<User> userArray;
     static int userCount;
 
+public:
     static bool isUserId(string &userId)
     {
         return userId.length() >= 8;
     }
-
-public:
     static bool checkUserExists(string &userId, vector<User> &userArray)
     {
         for (const auto &user : userArray)
@@ -78,10 +77,7 @@ public:
             outFile.close();
         }
     }
-    static bool isUserId(string &userId)
-    {
-        return userId.length() >= 8;
-    }
+
     void storingData()
     {
         User newUser;
