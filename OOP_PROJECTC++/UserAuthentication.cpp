@@ -12,17 +12,40 @@ private:
     string userName;
     string userId;
 
+    void settingUserTheme()
+    {
+        cout << "\tSetting User";
+        for (int i = 0; i < 3; i++)
+        {
+            cout << ".";
+            sleep(2);
+        }
+        cout << endl;
+    }
+    void settingUserId()
+    {
+        cout << "\tSetting UserId";
+        for (int i = 0; i < 3; i++)
+        {
+            cout << ".";
+            sleep(2);
+        }
+        cout << endl;
+    }
+
 public:
     User() : userName(""), userId("") {}
 
     // Setters
     void setUserName(string *userName)
     {
+        settingUserTheme();
         this->userName = *userName;
     }
 
     void setUserId(string *userId)
     {
+        settingUserId();
         this->userId = *userId;
     }
 
@@ -43,14 +66,19 @@ class Authenticate
 private:
     vector<User> userArray;
     static int userCount;
-
-public:
     static bool isUserId(string &userId)
     {
         return userId.length() >= 8;
     }
     static bool checkUserExists(string &userId, vector<User> &userArray)
     {
+        cout << "\tChecking Whether User Exists";
+        for (int i = 0; i < 3; i++)
+        {
+            cout << ".";
+            sleep(1);
+        }
+        cout << endl;
         for (const auto &user : userArray)
         {
             if (user.getUserId() == userId)
@@ -70,6 +98,13 @@ public:
         else
         {
             userCount++;
+            cout << "\tSaving Data";
+            for (int i = 0; i < 3; i++)
+            {
+                cout << ".";
+                sleep(1);
+            }
+            cout << endl;
             for (const auto &user : userArray)
             {
                 outFile << "UserNo: " << userCount << " UserId: " << user.getUserId() << ", Username: " << user.getUserName() << endl;
@@ -77,6 +112,9 @@ public:
             outFile.close();
         }
     }
+
+public:
+    
 
     void storingData()
     {
