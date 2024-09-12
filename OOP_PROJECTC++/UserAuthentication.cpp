@@ -44,6 +44,12 @@ private:
     vector<User> userArray;
     static int userCount;
 
+    static bool isUserId(string &userId)
+    {
+        return userId.length() >= 8;
+    }
+
+public:
     static bool checkUserExists(string &userId, vector<User> &userArray)
     {
         for (const auto &user : userArray)
@@ -55,7 +61,6 @@ private:
         }
         return false;
     }
-
     void saveData()
     {
         ofstream outFile("./Data.txt", ios::app);
@@ -73,13 +78,10 @@ private:
             outFile.close();
         }
     }
-
-     static bool isUserId(string &userId)
+    static bool isUserId(string &userId)
     {
         return userId.length() >= 8;
     }
-
-public:
     void storingData()
     {
         User newUser;
@@ -94,12 +96,12 @@ public:
         cout << "\tEnter a UserId (8 characters): ";
         cin >> *userId;
 
-        if (Authenticate::isUserId(*userId)) 
+        if (Authenticate::isUserId(*userId))
         {
-            if (!Authenticate::checkUserExists(*userId, userArray)) 
+            if (!Authenticate::checkUserExists(*userId, userArray))
             {
                 newUser.setUserId(userId);
-                userArray.push_back(newUser); 
+                userArray.push_back(newUser);
                 saveData();
             }
             else
