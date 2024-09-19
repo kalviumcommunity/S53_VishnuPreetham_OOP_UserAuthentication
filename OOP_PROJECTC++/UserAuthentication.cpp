@@ -8,7 +8,7 @@ using namespace std;
 
 class User
 {
-protected:  // Changed from private to protected
+protected:
     string userName;
     string userId;
 
@@ -123,6 +123,11 @@ public:
     {
         cout << "\tI am a constructor" << endl;
     }
+    
+    virtual void displayRole()
+    {
+        cout << "\tRole: Regular User" << endl;
+    }
 
     void storingData()
     {
@@ -211,7 +216,7 @@ public:
         }
     }
 
-    static void userInterface(Authenticate AuntenticateUser)
+    static void userInterface(Authenticate *authPtr)
     {
         bool exit = false;
         while (!exit)
@@ -219,19 +224,24 @@ public:
             cout << "\n / xxxxxxxxxxxxxxx -:- USER AUTHENTICATION -:- xxxxxxxxxxxxxx / " << endl;
             cout << "\t1. User Register " << endl;
             cout << "\t2. User Login" << endl;
-            cout << "\t3. Exit" << endl;
+            cout << "\t3. Display Role" << endl;
+            cout << "\t4. Exit" << endl;
             cout << "\tPlease Select the option to Proceed: ";
             int val;
             cin >> val;
             if (val == 1)
             {
-                AuntenticateUser.storingData();
+                authPtr->storingData();
             }
             else if (val == 2)
             {
-                AuntenticateUser.authenticateUser();
+                authPtr->authenticateUser();
             }
             else if (val == 3)
+            {
+                authPtr->displayRole();  
+            }
+            else if (val == 4)
             {
                 exit = true;
                 cout << "\tThank you! Please Visit Again." << endl;
@@ -239,16 +249,21 @@ public:
         }
     }
 
-    ~Authenticate()
+    virtual ~Authenticate()
     {
-        cout << "\tDestructor called." << endl;
+        cout << "\tDestructor called. Resources released!" << endl;
     }
 };
-
 
 class AdminAuthenticate : public Authenticate
 {
 public:
+    
+    void displayRole() override
+    {
+        cout << "\tRole: Admin User" << endl;
+    }
+
     void adminOnlyFeature()
     {
         cout << "\tAccessing User Info (Admin Feature)" << endl;
@@ -263,8 +278,12 @@ int Authenticate::userCount = 0;
 
 int main()
 {
-    AdminAuthenticate admin;
-    admin.userInterface(admin);
-    admin.adminOnlyFeature();
+   
+    Authenticate *authPtr;
+
+    AdminAuthenticate adminAuth; 
+    authPtr = &adminAuth; 
+
+    authPtr->userInterface(authPtr); 
     return 0;
 }
