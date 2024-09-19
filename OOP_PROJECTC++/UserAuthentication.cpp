@@ -8,7 +8,7 @@ using namespace std;
 
 class User
 {
-private:
+protected:  // Changed from private to protected
     string userName;
     string userId;
 
@@ -22,6 +22,7 @@ private:
         }
         cout << endl;
     }
+
     void settingUserId()
     {
         cout << "\tSetting UserId";
@@ -61,10 +62,11 @@ public:
     }
 };
 
-class Authenticate : public User // Inherit from User
+
+class Authenticate : public User  
 {
-private:
-    vector<User> userArray; // Keep track of users
+protected:
+    vector<User> userArray;
     static int userCount;
 
     static bool isUserId(string &userId)
@@ -243,11 +245,26 @@ public:
     }
 };
 
+
+class AdminAuthenticate : public Authenticate
+{
+public:
+    void adminOnlyFeature()
+    {
+        cout << "\tAccessing User Info (Admin Feature)" << endl;
+        for (const auto &user : userArray)
+        {
+            cout << "UserId: " << user.getUserId() << ", Username: " << user.getUserName() << endl;
+        }
+    }
+};
+
 int Authenticate::userCount = 0;
 
 int main()
 {
-    Authenticate AuntenticateUser;
-    AuntenticateUser.userInterface(AuntenticateUser);
+    AdminAuthenticate admin;
+    admin.userInterface(admin);
+    admin.adminOnlyFeature();
     return 0;
 }
