@@ -61,15 +61,17 @@ public:
     }
 };
 
-class Authenticate
+class Authenticate : public User // Inherit from User
 {
 private:
-    vector<User> userArray;
+    vector<User> userArray; // Keep track of users
     static int userCount;
+
     static bool isUserId(string &userId)
     {
         return userId.length() >= 8;
     }
+
     static bool checkUserExists(string &userId, vector<User> &userArray)
     {
         cout << "\tChecking Whether User Exists";
@@ -88,6 +90,7 @@ private:
         }
         return false;
     }
+
     void saveData()
     {
         ofstream outFile("./Data.txt", ios::app);
@@ -236,7 +239,7 @@ public:
 
     ~Authenticate()
     {
-        cout << "\tDestructor called. Resources released!" << endl;
+        cout << "\tDestructor called." << endl;
     }
 };
 
