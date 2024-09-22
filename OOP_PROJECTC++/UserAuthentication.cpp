@@ -6,7 +6,14 @@
 
 using namespace std;
 
-class User
+
+class UserBase
+{
+public:
+    virtual void displayUserInfo() const = 0; 
+};
+
+class User : public UserBase  
 {
 protected:
     string userName;
@@ -60,10 +67,15 @@ public:
     {
         return this->userId;
     }
+
+
+    void displayUserInfo() const override
+    {
+        cout << "UserId: " << userId << ", Username: " << userName << endl;
+    }
 };
 
-
-class Authenticate : public User  
+class Authenticate : public User
 {
 protected:
     vector<User> userArray;
@@ -122,11 +134,6 @@ public:
     Authenticate()
     {
         cout << "\tI am a constructor" << endl;
-    }
-    
-    virtual void displayRole()
-    {
-        cout << "\tRole: Regular User" << endl;
     }
 
     void storingData()
@@ -216,7 +223,7 @@ public:
         }
     }
 
-    static void userInterface(Authenticate *authPtr)
+    static void userInterface(Authenticate AuntenticateUser)
     {
         bool exit = false;
         while (!exit)
@@ -224,24 +231,19 @@ public:
             cout << "\n / xxxxxxxxxxxxxxx -:- USER AUTHENTICATION -:- xxxxxxxxxxxxxx / " << endl;
             cout << "\t1. User Register " << endl;
             cout << "\t2. User Login" << endl;
-            cout << "\t3. Display Role" << endl;
-            cout << "\t4. Exit" << endl;
+            cout << "\t3. Exit" << endl;
             cout << "\tPlease Select the option to Proceed: ";
             int val;
             cin >> val;
             if (val == 1)
             {
-                authPtr->storingData();
+                AuntenticateUser.storingData();
             }
             else if (val == 2)
             {
-                authPtr->authenticateUser();
+                AuntenticateUser.authenticateUser();
             }
             else if (val == 3)
-            {
-                authPtr->displayRole();  
-            }
-            else if (val == 4)
             {
                 exit = true;
                 cout << "\tThank you! Please Visit Again." << endl;
@@ -249,27 +251,21 @@ public:
         }
     }
 
-    virtual ~Authenticate()
+    ~Authenticate()
     {
-        cout << "\tDestructor called. Resources released!" << endl;
+        cout << "\tDestructor called." << endl;
     }
 };
 
 class AdminAuthenticate : public Authenticate
 {
 public:
-    
-    void displayRole() override
-    {
-        cout << "\tRole: Admin User" << endl;
-    }
-
     void adminOnlyFeature()
     {
         cout << "\tAccessing User Info (Admin Feature)" << endl;
         for (const auto &user : userArray)
         {
-            cout << "UserId: " << user.getUserId() << ", Username: " << user.getUserName() << endl;
+            user.displayUserInfo(); 
         }
     }
 };
@@ -278,12 +274,8 @@ int Authenticate::userCount = 0;
 
 int main()
 {
-   
-    Authenticate *authPtr;
-
-    AdminAuthenticate adminAuth; 
-    authPtr = &adminAuth; 
-
-    authPtr->userInterface(authPtr); 
+    AdminAuthenticate admin;
+    admin.userInterface(admin);
+    admin.adminOnlyFeature();
     return 0;
 }
