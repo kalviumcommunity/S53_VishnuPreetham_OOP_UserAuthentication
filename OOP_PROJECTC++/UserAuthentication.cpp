@@ -20,7 +20,6 @@ protected:
 public:
     User() : userName(""), userId("") {}
 
-    // Setters
     void setUserName(const string &name)
     {
         userName = name;
@@ -31,7 +30,6 @@ public:
         userId = id;
     }
 
-    // Getters
     string getUserName() const
     {
         return userName;
@@ -48,9 +46,16 @@ public:
     }
 };
 
-class SaveData{
+class FileHandler
+{
 public:
-    static void saveData(const vector<User> &userArray, int userCount)
+    virtual void saveData(const vector<User> &userArray, int userCount) = 0;
+};
+
+class TextFileHandler : public FileHandler
+{
+public:
+    void saveData(const vector<User> &userArray, int userCount) override
     {
         ofstream outFile("./Data.txt", ios::app);
         if (!outFile)
@@ -68,36 +73,46 @@ public:
     }
 };
 
-class UserValidator{
+class Validator
+{
 public:
-    static bool isUserId(const string &userId)
+    virtual bool validate(const string &input) const = 0;
+};
+
+class UserIdValidator : public Validator
+{
+public:
+    bool validate(const string &userId) const override
     {
         return userId.length() >= 8;
     }
-
-    static bool checkUserExists(const string &userId, const vector<User> &userArray)
-    {
-        for (const auto &user : userArray)
-        {
-            if (user.getUserId() == userId)
-            {
-                return true;
-            }
-        }
-        return false;
-    }
 };
 
-class Authenticate : public User
+class Authenticator
 {
 protected:
     vector<User> userArray;
     static int userCount;
 
 public:
-    Authenticate() {}
+    virtual void registerUser() = 0;
+    virtual void authenticateUser() = 0;
 
-    void storingData()
+    virtual ~Authenticator() {}
+};
+
+int Authenticator::userCount = 0;
+
+class BasicAuthenticator : public Authenticator
+{
+private:
+    Validator *validator;
+    FileHandler *fileHandler;
+
+public:
+    BasicAuthenticator(Validator *v, FileHandler *f) : validator(v), fileHandler(f) {}
+
+    void registerUser() override
     {
         User newUser;
         string userName, userId;
@@ -110,21 +125,31 @@ public:
         cout << "\tEnter a UserId (8 characters): ";
         cin >> userId;
 
-        if (UserValidator::isUserId(userId))
+        if (validator->validate(userId))
         {
-            if (!UserValidator::checkUserExists(userId, userArray))
+            bool userExists = false;
+            for (const auto &user : userArray)
+            {
+                if (user.getUserId() == userId)
+                {
+                    userExists = true;
+                    break;
+                }
+            }
+
+            if (!userExists)
             {
                 newUser.setUserId(userId);
                 userArray.push_back(newUser);
                 userCount++;
-                SaveData::saveData(userArray, userCount);
+                fileHandler->saveData(userArray, userCount);
 
                 cout << "\tUser Registered Successfully!" << endl;
                 cout << "\tUserNo: " << userCount << ", UserId: " << newUser.getUserId() << ", Username: " << newUser.getUserName() << endl;
             }
             else
             {
-                cout << "\t UserId already exists!" << endl;
+                cout << "\tError: UserId already exists!" << endl;
                 goto start;
             }
         }
@@ -135,7 +160,7 @@ public:
         }
     }
 
-    void authenticateUser()
+    void authenticateUser() override
     {
         string userId, userName;
         cout << "\tEnter UserId: ";
@@ -162,8 +187,28 @@ public:
             cout << "\tError: Incorrect UserId or UserName!" << endl;
         }
     }
+};
 
-    static void userInterface(Authenticate &authenticateUser)
+
+class AdminAuthenticator : public BasicAuthenticator
+{
+public:
+    AdminAuthenticator(Validator *v, FileHandler *f) : BasicAuthenticator(v, f) {}
+
+    void adminOnlyFeature()
+    {
+        cout << "\tAccessing User Info (Admin Feature)" << endl;
+        for (const auto &user : userArray)
+        {
+            user.displayUserInfo();
+        }
+    }
+};
+
+class UserInterface
+{
+public:
+    static void displayInterface(Authenticator &authenticator)
     {
         bool exit = false;
         while (!exit)
@@ -177,11 +222,11 @@ public:
             cin >> val;
             if (val == 1)
             {
-                authenticateUser.storingData();
+                authenticator.registerUser();
             }
             else if (val == 2)
             {
-                authenticateUser.authenticateUser();
+                authenticator.authenticateUser();
             }
             else if (val == 3)
             {
@@ -190,32 +235,14 @@ public:
             }
         }
     }
-
-    ~Authenticate()
-    {
-        cout << "\tDestructor called." << endl;
-    }
 };
-
-class AdminAuthenticate : public Authenticate
-{
-public:
-    void adminOnlyFeature()
-    {
-        cout << "\tAccessing User Info (Admin Feature)" << endl;
-        for (const auto &user : userArray)
-        {
-            user.displayUserInfo();
-        }
-    }
-};
-
-int Authenticate::userCount = 0;
 
 int main()
 {
-    AdminAuthenticate admin;
-    admin.userInterface(admin);
-    admin.adminOnlyFeature();
+    UserIdValidator idValidator;
+    TextFileHandler textFileHandler;
+    AdminAuthenticator adminAuth(&idValidator, &textFileHandler);
+    UserInterface::displayInterface(adminAuth);
+    adminAuth.adminOnlyFeature();
     return 0;
 }
