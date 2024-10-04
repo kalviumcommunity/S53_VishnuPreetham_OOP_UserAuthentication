@@ -1,7 +1,8 @@
 #include <iostream>
 #include <fstream>
-#include <vector>
+#include <sstream>
 #include <unistd.h>
+#include <vector>
 
 using namespace std;
 
@@ -17,27 +18,53 @@ protected:
     string userName;
     string userId;
 
+    void settingUserTheme()
+    {
+        cout << "\tSetting User";
+        for (int i = 0; i < 3; i++)
+        {
+            cout << ".";
+            sleep(1);
+        }
+        cout << endl;
+    }
+
+    void settingUserId()
+    {
+        cout << "\tSetting UserId";
+        for (int i = 0; i < 3; i++)
+        {
+            cout << ".";
+            sleep(1);
+        }
+        cout << endl;
+    }
+
 public:
     User() : userName(""), userId("") {}
 
-    void setUserName(const string &name)
+    // Setters
+    void setUserName(string *userName)
     {
-        userName = name;
+        settingUserTheme();
+        this->userName = *userName;
     }
 
-    void setUserId(const string &id)
+    void setUserId(string *userId)
     {
-        userId = id;
+        settingUserId();
+        this->userId = *userId;
     }
 
+    // Getters
     string getUserName() const
     {
-        return userName;
+        return this->userName;
     }
 
     string getUserId() const
     {
-        return userId;
+        return this->userId;
     }
 
     void displayUserInfo() const override
@@ -46,106 +73,92 @@ public:
     }
 };
 
-class FileHandler
-{
-public:
-    virtual void saveData(const vector<User> &userArray, int userCount) = 0;
-};
-
-class TextFileHandler : public FileHandler
-{
-public:
-    void saveData(const vector<User> &userArray, int userCount) override
-    {
-        ofstream outFile("./Data.txt", ios::app);
-        if (!outFile)
-        {
-            cout << "\tError: File can't open!" << endl;
-            return;
-        }
-
-        for (const auto &user : userArray)
-        {
-            outFile << "UserNo: " << userCount << " UserId: " << user.getUserId() << ", Username: " << user.getUserName() << endl;
-        }
-        outFile.close();
-        cout << "\tData saved successfully." << endl;
-    }
-};
-
 class Validator
 {
 public:
-    virtual bool validate(const string &input) const = 0;
+    virtual bool validate(const string &input) = 0;
 };
 
 class UserIdValidator : public Validator
 {
 public:
-    bool validate(const string &userId) const override
+    bool validate(const string &userId) override
     {
         return userId.length() >= 8;
     }
 };
 
+class FileHandler
+{
+public:
+    virtual void saveUserData(const vector<User> &userArray, int userCount) = 0;
+};
+
+class TextFileHandler : public FileHandler
+{
+public:
+    void saveUserData(const vector<User> &userArray, int userCount) override
+    {
+        ofstream outFile("./Data.txt", ios::app);
+        if (!outFile)
+        {
+            cout << "\tError: File can't open!" << endl;
+        }
+        else
+        {
+            cout << "\tSaving Data";
+            for (int i = 0; i < 3; i++)
+            {
+                cout << ".";
+                sleep(1);
+            }
+            cout << endl;
+            for (const auto &user : userArray)
+            {
+                outFile << "UserNo: " << userCount << " UserId: " << user.getUserId() << ", Username: " << user.getUserName() << endl;
+            }
+            outFile.close();
+        }
+    }
+};
+
+
+
+
 class Authenticator
 {
 protected:
     vector<User> userArray;
+    Validator *idValidator;
+    FileHandler *fileHandler;
     static int userCount;
 
 public:
-    virtual void registerUser() = 0;
-    virtual void authenticateUser() = 0;
+    Authenticator(Validator *validator, FileHandler *fileHandler)
+        : idValidator(validator), fileHandler(fileHandler) {}
 
-    virtual ~Authenticator() {}
-};
-
-int Authenticator::userCount = 0;
-
-class BasicAuthenticator : public Authenticator
-{
-private:
-    Validator *validator;
-    FileHandler *fileHandler;
-
-public:
-    BasicAuthenticator(Validator *v, FileHandler *f) : validator(v), fileHandler(f) {}
-
-    void registerUser() override
+    virtual void registerUser()
     {
         User newUser;
         string userName, userId;
 
         cout << "\tEnter UserName: ";
         cin >> userName;
-        newUser.setUserName(userName);
+        newUser.setUserName(&userName);
 
     start:
         cout << "\tEnter a UserId (8 characters): ";
         cin >> userId;
 
-        if (validator->validate(userId))
+        if (idValidator->validate(userId))
         {
-            bool userExists = false;
-            for (const auto &user : userArray)
+            if (!checkUserExists(userId))
             {
-                if (user.getUserId() == userId)
-                {
-                    userExists = true;
-                    break;
-                }
-            }
-
-            if (!userExists)
-            {
-                newUser.setUserId(userId);
+                newUser.setUserId(&userId);
                 userArray.push_back(newUser);
                 userCount++;
-                fileHandler->saveData(userArray, userCount);
-
+                fileHandler->saveUserData(userArray,userCount);
                 cout << "\tUser Registered Successfully!" << endl;
-                cout << "\tUserNo: " << userCount << ", UserId: " << newUser.getUserId() << ", Username: " << newUser.getUserName() << endl;
             }
             else
             {
@@ -160,7 +173,7 @@ public:
         }
     }
 
-    void authenticateUser() override
+    virtual void authenticateUser()
     {
         string userId, userName;
         cout << "\tEnter UserId: ";
@@ -187,17 +200,31 @@ public:
             cout << "\tError: Incorrect UserId or UserName!" << endl;
         }
     }
+
+    bool checkUserExists(const string &userId)
+    {
+        for (const auto &user : userArray)
+        {
+            if (user.getUserId() == userId)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
 };
 
+int Authenticator::userCount = 0;
 
-class AdminAuthenticator : public BasicAuthenticator
+class AdminAuthenticator : public Authenticator
 {
 public:
-    AdminAuthenticator(Validator *v, FileHandler *f) : BasicAuthenticator(v, f) {}
+    AdminAuthenticator(Validator *validator, FileHandler *fileHandler)
+        : Authenticator(validator, fileHandler) {}
 
     void adminOnlyFeature()
     {
-        cout << "\tAccessing User Info (Admin Feature)" << endl;
+        cout << "\tAdmin Accessing User Info" << endl;
         for (const auto &user : userArray)
         {
             user.displayUserInfo();
@@ -208,25 +235,26 @@ public:
 class UserInterface
 {
 public:
-    static void displayInterface(Authenticator &authenticator)
+    static void displayMenu(Authenticator &auth)
     {
         bool exit = false;
         while (!exit)
         {
-            cout << "\n / xxxxxxxxxxxxxxx -:- USER AUTHENTICATION -:- xxxxxxxxxxxxxx / " << endl;
-            cout << "\t1. User Register " << endl;
+            cout << "\n / -:- USER AUTHENTICATION MENU -:- / " << endl;
+            cout << "\t1. User Register" << endl;
             cout << "\t2. User Login" << endl;
             cout << "\t3. Exit" << endl;
-            cout << "\tPlease Select the option to Proceed: ";
+            cout << "\tPlease Select an option: ";
             int val;
             cin >> val;
+
             if (val == 1)
             {
-                authenticator.registerUser();
+                auth.registerUser();
             }
             else if (val == 2)
             {
-                authenticator.authenticateUser();
+                auth.authenticateUser();
             }
             else if (val == 3)
             {
@@ -241,8 +269,10 @@ int main()
 {
     UserIdValidator idValidator;
     TextFileHandler textFileHandler;
+
     AdminAuthenticator adminAuth(&idValidator, &textFileHandler);
-    UserInterface::displayInterface(adminAuth);
+    UserInterface::displayMenu(adminAuth);
+
     adminAuth.adminOnlyFeature();
     return 0;
 }
