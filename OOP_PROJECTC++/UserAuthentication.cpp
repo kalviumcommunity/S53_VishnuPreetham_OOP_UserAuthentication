@@ -1,73 +1,46 @@
 #include <iostream>
 #include <fstream>
-#include <sstream>
-#include <unistd.h>
 #include <vector>
+#include <unistd.h>
 
 using namespace std;
-
 
 class UserBase
 {
 public:
-    virtual void displayUserInfo() const = 0; 
+    virtual void displayUserInfo() const = 0;
 };
 
-class User : public UserBase  
+class User : public UserBase
 {
 protected:
     string userName;
     string userId;
 
-    void settingUserTheme()
-    {
-        cout << "\tSetting User";
-        for (int i = 0; i < 3; i++)
-        {
-            cout << ".";
-            sleep(2);
-        }
-        cout << endl;
-    }
-
-    void settingUserId()
-    {
-        cout << "\tSetting UserId";
-        for (int i = 0; i < 3; i++)
-        {
-            cout << ".";
-            sleep(2);
-        }
-        cout << endl;
-    }
-
 public:
     User() : userName(""), userId("") {}
 
     // Setters
-    void setUserName(string *userName)
+    void setUserName(const string &name)
     {
-        settingUserTheme();
-        this->userName = *userName;
+        userName = name;
     }
 
-    void setUserId(string *userId)
+    void setUserId(const string &id)
     {
-        settingUserId();
-        this->userId = *userId;
+        userId = id;
     }
 
     // Getters
     string getUserName() const
     {
-        return this->userName;
+        return userName;
     }
 
     string getUserId() const
     {
-        return this->userId;
+        return userId;
     }
-
 
     void displayUserInfo() const override
     {
@@ -75,26 +48,35 @@ public:
     }
 };
 
-class Authenticate : public User
-{
-protected:
-    vector<User> userArray;
-    static int userCount;
+class SaveData{
+public:
+    static void saveData(const vector<User> &userArray, int userCount)
+    {
+        ofstream outFile("./Data.txt", ios::app);
+        if (!outFile)
+        {
+            cout << "\tError: File can't open!" << endl;
+            return;
+        }
 
-    static bool isUserId(string &userId)
+        for (const auto &user : userArray)
+        {
+            outFile << "UserNo: " << userCount << " UserId: " << user.getUserId() << ", Username: " << user.getUserName() << endl;
+        }
+        outFile.close();
+        cout << "\tData saved successfully." << endl;
+    }
+};
+
+class UserValidator{
+public:
+    static bool isUserId(const string &userId)
     {
         return userId.length() >= 8;
     }
 
-    static bool checkUserExists(string &userId, vector<User> &userArray)
+    static bool checkUserExists(const string &userId, const vector<User> &userArray)
     {
-        cout << "\tChecking Whether User Exists";
-        for (int i = 0; i < 3; i++)
-        {
-            cout << ".";
-            sleep(1);
-        }
-        cout << endl;
         for (const auto &user : userArray)
         {
             if (user.getUserId() == userId)
@@ -104,63 +86,45 @@ protected:
         }
         return false;
     }
+};
 
-    void saveData()
-    {
-        ofstream outFile("./Data.txt", ios::app);
-        if (!outFile)
-        {
-            cout << "\tError: File can't open!" << endl;
-        }
-        else
-        {
-            userCount++;
-            cout << "\tSaving Data";
-            for (int i = 0; i < 3; i++)
-            {
-                cout << ".";
-                sleep(1);
-            }
-            cout << endl;
-            for (const auto &user : userArray)
-            {
-                outFile << "UserNo: " << userCount << " UserId: " << user.getUserId() << ", Username: " << user.getUserName() << endl;
-            }
-            outFile.close();
-        }
-    }
+class Authenticate : public User
+{
+protected:
+    vector<User> userArray;
+    static int userCount;
 
 public:
-    Authenticate()
-    {
-        cout << "\tI am a constructor" << endl;
-    }
+    Authenticate() {}
 
     void storingData()
     {
         User newUser;
-        string *userName = new string;
-        string *userId = new string;
+        string userName, userId;
 
         cout << "\tEnter UserName: ";
-        cin >> *userName;
+        cin >> userName;
         newUser.setUserName(userName);
 
     start:
         cout << "\tEnter a UserId (8 characters): ";
-        cin >> *userId;
+        cin >> userId;
 
-        if (Authenticate::isUserId(*userId))
+        if (UserValidator::isUserId(userId))
         {
-            if (!Authenticate::checkUserExists(*userId, userArray))
+            if (!UserValidator::checkUserExists(userId, userArray))
             {
                 newUser.setUserId(userId);
                 userArray.push_back(newUser);
-                saveData();
+                userCount++;
+                SaveData::saveData(userArray, userCount);
+
+                cout << "\tUser Registered Successfully!" << endl;
+                cout << "\tUserNo: " << userCount << ", UserId: " << newUser.getUserId() << ", Username: " << newUser.getUserName() << endl;
             }
             else
             {
-                cout << "\tError: UserId already exists!" << endl;
+                cout << "\t UserId already exists!" << endl;
                 goto start;
             }
         }
@@ -169,23 +133,6 @@ public:
             cout << "\tUserId should be 8 characters long." << endl;
             goto start;
         }
-
-        delete userName;
-        delete userId;
-        userName = nullptr;
-        userId = nullptr;
-
-        cout << "\tPlease Wait, User Registering";
-        for (int i = 0; i < 3; i++)
-        {
-            cout << ".";
-            sleep(1);
-        }
-        cout << endl;
-        cout << "\tUser Registered Successfully!" << endl;
-        cout << "\tUserNo: " << userCount << ", UserId: " << newUser.getUserId() << ", Username: " << newUser.getUserName() << endl;
-
-        sleep(1);
     }
 
     void authenticateUser()
@@ -208,13 +155,6 @@ public:
 
         if (isAuthenticated)
         {
-            cout << "\tPlease Wait";
-            for (int i = 0; i < 3; i++)
-            {
-                cout << ".";
-                sleep(1);
-            }
-            cout << endl;
             cout << "\tWelcome to the system!" << endl;
         }
         else
@@ -223,7 +163,7 @@ public:
         }
     }
 
-    static void userInterface(Authenticate AuntenticateUser)
+    static void userInterface(Authenticate &authenticateUser)
     {
         bool exit = false;
         while (!exit)
@@ -237,11 +177,11 @@ public:
             cin >> val;
             if (val == 1)
             {
-                AuntenticateUser.storingData();
+                authenticateUser.storingData();
             }
             else if (val == 2)
             {
-                AuntenticateUser.authenticateUser();
+                authenticateUser.authenticateUser();
             }
             else if (val == 3)
             {
@@ -265,7 +205,7 @@ public:
         cout << "\tAccessing User Info (Admin Feature)" << endl;
         for (const auto &user : userArray)
         {
-            user.displayUserInfo(); 
+            user.displayUserInfo();
         }
     }
 };
